@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Settings Panel</title>
+    <meta
+      name="description"
+      content="Game settings panel with toggleable options for aim assistance and other features"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script type="module" src="https://webdraw.com/webdraw-sdk@v1"></script>
+  </head>
+  <body
+    class="bg-gray-900 text-white min-h-screen flex items-center justify-center"
+  >
+    <div id="app" class="w-full max-w-md p-6 bg-gray-800 rounded-lg shadow-lg">
+      <h1 class="text-2xl font-bold mb-6 text-center">Game Settings</h1>
+
+      <div class="space-y-4">
+        <!-- PIN TARGET Option -->
+        <div class="flex items-center justify-between p-3 bg-gray-700 rounded">
+          <label class="font-medium">PIN TARGET</label>
+          <button
+            @click="toggleSetting('pinTarget')"
+            class="w-16 h-8 rounded-full relative focus:outline-none"
+            :class="settings.pinTarget ? 'bg-green-500' : 'bg-gray-600'"
+          >
+            <span
+              class="absolute top-1 w-6 h-6 rounded-full transition-transform duration-300 ease-in-out bg-white"
+              :class="settings.pinTarget ? 'transform translate-x-8 left-1' : 'left-1'"
+            ></span>
+            <span class="sr-only">{{ settings.pinTarget ? 'ON' : 'OFF' }}</span>
+            <span
+              class="absolute inset-0 flex items-center justify-center text-xs font-bold"
+              :class="settings.pinTarget ? 'text-gray-800 pl-1' : 'text-white pr-1'"
+            >
+              {{ settings.pinTarget ? 'ON' : 'OFF' }}
+            </span>
+          </button>
+        </div>
+
+        <!-- PIN HEAD Option -->
+        <div class="flex items-center justify-between p-3 bg-gray-700 rounded">
+          <label class="font-medium">PIN HEAD</label>
+          <button
+            @click="toggleSetting('pinHead')"
+            class="w-16 h-8 rounded-full relative focus:outline-none"
+            :class="settings.pinHead ? 'bg-green-500' : 'bg-gray-600'"
+          >
+            <span
+              class="absolute top-1 w-6 h-6 rounded-full transition-transform duration-300 ease-in-out bg-white"
+              :class="settings.pinHead ? 'transform translate-x-8 left-1' : 'left-1'"
+            ></span>
+            <span class="sr-only">{{ settings.pinHead ? 'ON' : 'OFF' }}</span>
+            <span
+              class="absolute inset-0 flex items-center justify-center text-xs font-bold"
+              :class="settings.pinHead ? 'text-gray-800 pl-1' : 'text-white pr-1'"
+            >
+              {{ settings.pinHead ? 'ON' : 'OFF' }}
+            </span>
+          </button>
+        </div>
+
+        <!-- AIMLOCK Option -->
+        <div class="flex items-center justify-between p-3 bg-gray-700 rounded">
+          <label class="font-medium">AIMLOCK</label>
+          <button
+            @click="toggleSetting('aimlock')"
+            class="w-16 h-8 rounded-full relative focus:outline-none"
+            :class="settings.aimlock ? 'bg-green-500' : 'bg-gray-600'"
+          >
+            <span
+              class="absolute top-1 w-6 h-6 rounded-full transition-transform duration-300 ease-in-out bg-white"
+              :class="settings.aimlock ? 'transform translate-x-8 left-1' : 'left-1'"
+            ></span>
+            <span class="sr-only">{{ settings.aimlock ? 'ON' : 'OFF' }}</span>
+            <span
+              class="absolute inset-0 flex items-center justify-center text-xs font-bold"
+              :class="settings.aimlock ? 'text-gray-800 pl-1' : 'text-white pr-1'"
+            >
+              {{ settings.aimlock ? 'ON' : 'OFF' }}
+            </span>
+          </button>
+        </div>
+
+        <!-- OTHER Option -->
+        <div class="flex items-center justify-between p-3 bg-gray-700 rounded">
+          <label class="font-medium">OTHER</label>
+          <button
+            @click="toggleSetting('other')"
+            class="w-16 h-8 rounded-full relative focus:outline-none"
+            :class="settings.other ? 'bg-green-500' : 'bg-gray-600'"
+          >
+            <span
+              class="absolute top-1 w-6 h-6 rounded-full transition-transform duration-300 ease-in-out bg-white"
+              :class="settings.other ? 'transform translate-x-8 left-1' : 'left-1'"
+            ></span>
+            <span class="sr-only">{{ settings.other ? 'ON' : 'OFF' }}</span>
+            <span
+              class="absolute inset-0 flex items-center justify-center text-xs font-bold"
+              :class="settings.other ? 'text-gray-800 pl-1' : 'text-white pr-1'"
+            >
+              {{ settings.other ? 'ON' : 'OFF' }}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-gray-600">
+        <div class="flex justify-between">
+          <button
+            @click="resetSettings"
+            class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded focus:outline-none"
+          >
+            Reset
+          </button>
+          <button
+            @click="saveSettings"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded focus:outline-none"
+          >
+            Save
+          </button>
+        </div>
+        <div
+          v-if="saveStatus"
+          class="mt-3 text-center text-sm"
+          :class="saveStatus.type === 'success' ? 'text-green-400' : 'text-red-400'"
+        >
+          {{ saveStatus.message }}
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { SDK } from "https://webdraw.com/webdraw-sdk@v1";
+
+      const { createApp, ref, onMounted } = Vue;
+
+      createApp({
+        setup() {
+          const settings = ref({
+            pinTarget: false,
+            pinHead: false,
+            aimlock: false,
+            other: false,
+          });
+
+          const saveStatus = ref(null);
+
+          function toggleSetting(setting) {
+            settings.value[setting] = !settings.value[setting];
+          }
+
+          function resetSettings() {
+            Object.keys(settings.value).forEach((key) => {
+              settings.value[key] = false;
+            });
+            saveStatus.value = { type: "success", message: "Settings reset" };
+            setTimeout(() => (saveStatus.value = null), 2000);
+          }
+
+          function saveSettings() {
+            // Simulate saving with loading state
+            saveStatus.value = { type: "loading", message: "Saving..." };
+
+            setTimeout(() => {
+              try {
+                // In a real app, you would save to localStorage or a backend
+                localStorage.setItem(
+                  "gameSettings",
+                  JSON.stringify(settings.value)
+                );
+                saveStatus.value = {
+                  type: "success",
+                  message: "Settings saved successfully!",
+                };
+              } catch (error) {
+                saveStatus.value = {
+                  type: "error",
+                  message: "Failed to save settings",
+                };
+              }
+
+              setTimeout(() => (saveStatus.value = null), 2000);
+            }, 800);
+          }
+
+          onMounted(() => {
+            // Load saved settings if available
+            const savedSettings = localStorage.getItem("gameSettings");
+            if (savedSettings) {
+              try {
+                const parsed = JSON.parse(savedSettings);
+                Object.keys(settings.value).forEach((key) => {
+                  if (key in parsed) {
+                    settings.value[key] = parsed[key];
+                  }
+                });
+              } catch (e) {
+                console.error("Failed to load saved settings");
+              }
+            }
+          });
+
+          return {
+            settings,
+            saveStatus,
+            toggleSetting,
+            resetSettings,
+            saveSettings,
+          };
+        },
+      }).mount("#app");
+      //if(PIN TARGET) = ON {
+      //Pin Target(AIMBOT) = 80%
+      //}
+      //else() {
+      //Pin Target = Default
+      //}
+      //if(PIN HEAD) = ON {
+      //Get.Head = "9999"
+      //Get.Hs = "9999"
+      //Aim.Hs = "999"
+      //DameHs = "9999"
+      //Head = heart(AUTO PIN HEAD)
+      //Fix heart(top head)
+      //search "bone_NeckSpine1B", edit "bone_HipsSpine1B"
+      //search "bone_HipsLeftToe", edit "bone_NeckLeftToe"
+      //search(byte) "00000048454144", delete "HEAD"
+      //}
+      //else() {
+      //PIN HEAD = Default
+      //}
+      //if(AIMLOCK) = ON {
+      //AIMLOCK = 85%
+      //}
+      //else() {
+      //AIMLOCK = Default
+      //}
+      //if(OTHER) = ON {
+      //FixRung = 100%
+      //Norecoil = 100%
+      //dpi = 1600
+      //fps = 240
+      //}
+    </script>
+  </body>
+</html>
